@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const { PORT, NODE_ENV, DB_URL } = require('./app.constant');
 
-if(!PORT || !NODE_ENV) {
+if (!PORT || !NODE_ENV) {
     throw new Error('Environment values not imported properly');
 }
 
@@ -19,16 +19,16 @@ const app = express();
 mongoose.connect(DB_URL, {
     useNewUrlParser: true,
     useFindAndModify: true,
-    useUnifiedTopology: false,
+    useUnifiedTopology: true,
     useCreateIndex: true
 })
-.then(() => console.log('DB connected'))
-.catch(err => console.error('DB CONNECTION ERROR: ', err))
+    .then(() => console.log('DB connected'))
+    .catch(err => console.error('DB CONNECTION ERROR: ', err))
 
 //middleware
 app.use(morgan('dev'));
-if(NODE_ENV === 'development') {
-    app.use(cors({origin: `http://localhost:3000`})); //allows 'http://localhost:3000' origin to make request
+if (NODE_ENV === 'development') {
+    app.use(cors({ origin: `http://localhost:3000` })); //allows 'http://localhost:3000' origin to make request
     // app.use(cors()); //allows all origin to make request
 }
 app.use(bodyParser.json());
