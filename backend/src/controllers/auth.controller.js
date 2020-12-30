@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const sendGridMail = require('@sendgrid/mail');
 
 const User = require('../models/user.model');
-const { EMAIL_API, ACCOUNT_ACTIVATION_KEY, EMAIL_VALIDATION_TIME, EMAIL_FORM } = require('../app.constant');
+const { EMAIL_API, ACCOUNT_ACTIVATION_KEY, EMAIL_VALIDATION_TIME, EMAIL_FROM, CLIENT_URL } = require('../app.constant');
 
 sendGridMail.setApiKey(EMAIL_API);
 
@@ -23,7 +23,7 @@ exports.signup = async (req, res) => {
     const token = jwt.sign({ name, email, password }, ACCOUNT_ACTIVATION_KEY, { expiresIn: EMAIL_VALIDATION_TIME });
 
     const emailData = {
-      from: EMAIL_FORM,
+      from: EMAIL_FROM,
       to: email,
       subject: `Account activation link`,
       html: `
@@ -43,7 +43,7 @@ exports.signup = async (req, res) => {
         });
       })
       .catch(err => {
-        throw err;
+        return err;
       });
 
   } catch (err) {
