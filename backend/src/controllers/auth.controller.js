@@ -7,21 +7,32 @@ exports.signup = async (req, res, next) => {
         const user = await User.findOne({ email }).exec();
         if (user) {
             res.status(400).json({
-                error: [
-                    {
-                        msg: 'Email is already taken'
-                    }
-                ]
+                success: false,
+                message: 'Email is already taken',
+                data: null
             });
+
+            return;
         }
 
         let newUser = new User({ name, email, password });
         const result = await newUser.save();
-        console.log(result);
+
+        res.status(200).json({
+            success: true,
+            message: 'User have been saved successfully',
+            data: {
+                name: result.name,
+                email: result.email
+            }
+        });
+
     } catch (err) {
         res.status(404).json({
-            error: err
-        })
+            success: false,
+            message: 'Failed to process the request',
+            data: err
+        });
     }
 
 
