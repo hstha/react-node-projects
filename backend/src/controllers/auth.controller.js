@@ -1,17 +1,13 @@
+const jwt = require('jsonwebtoken');
+const sendGridMail = require('@sendgrid/mail');
+
 const User = require('../models/user.model');
+const { EMAIL_API, ACCOUNT_ACTIVATION_KEY, EMAIL_VALIDATION_TIME, EMAIL_FORM } = require('../app.constant');
 
-/**
- * The problem with this approach is the we will be saving a lot of junk users as
- * we don't verify whether the user is valid or not
- * To validate 
- *  - one of the approach we can take is that by ckecking is the email valid
- *    => By sending the confirmation workflow and then saving the user
- *  - another approach is using it's phone number and follow the similar approach 
- */
+sendGridMail.setApiKey(EMAIL_API);
 
-exports.signup = async (req, res, next) => {
+exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
-
   try {
     const user = await User.findOne({ email }).exec();
     if (user) {
@@ -24,17 +20,31 @@ exports.signup = async (req, res, next) => {
       return;
     }
 
-    let newUser = new User({ name, email, password });
-    const result = await newUser.save();
+    const token = jwt.sign({ name, email, password }, ACCOUNT_ACTIVATION_KEY, { expiresIn: EMAIL_VALIDATION_TIME });
 
-    res.status(200).json({
-      success: true,
-      message: 'User have been saved successfully',
-      data: {
-        name: result.name,
-        email: result.email
-      }
-    });
+    const emailData = {
+      from: EMAIL_FORM,
+      to: email,
+      subject: `Account activation link`,
+      html: `
+        <h1>Please use the following link to activate your account</h1>
+        <a href="${CLIENT_URL}/auth/activate/${token}">${token}</a>
+        <hr />
+        <p>This email contains sensetive information</p>
+      `
+    }
+
+    sendGridMail.send(emailData)
+      .then(response => {
+        console.log('sign up sent', response);
+        res.json({
+          success: true,
+          message: 'Please verify your email to register'
+        });
+      })
+      .catch(err => {
+        throw err;
+      });
 
   } catch (err) {
     res.status(404).json({
@@ -43,9 +53,7 @@ exports.signup = async (req, res, next) => {
       data: err
     });
   }
-
-
-};
+}
 
 exports.login = (req, res, next) => {
   res.json({
