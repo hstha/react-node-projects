@@ -18,20 +18,20 @@ class User {
 
 	static saveUser({ name, email, password }) {
 		const newUser = new UserModel({ name, email, password });
-		newUser.save();
-		then((result) => {
-			return {
-				message: "Your account is registered",
-				data: [
-					{
-						name,
-						email,
-					},
-				],
-			};
-		}).catch((err) => {
-			return err;
-		});
+		return newUser.save()
+			.then((result) => {
+				return {
+					message: "Your account is registered",
+					data: [
+						{
+							name,
+							email,
+						},
+					],
+				};
+			}).catch((err) => {
+				return err;
+			});
 	}
 }
 
