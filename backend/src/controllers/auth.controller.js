@@ -3,9 +3,13 @@ const JWT = require("../utils/jwt.helper");
 const {
   ACCOUNT_ACTIVATION_KEY,
   EMAIL_VALIDATION_TIME,
+  ERROR_MESSAGE,
+  SECRET_KEY,
+  SUCCESS_MESSAGE,
 } = require("../app.constant");
 
 exports.signup = async (req, res) => {
+  console.log('[controller: signup]');
   const { name, email, password } = req.body;
   try {
     const isNewUser = await User.isUserPresent(email);
@@ -42,6 +46,7 @@ exports.signup = async (req, res) => {
 };
 
 exports.activateAccount = (req, res) => {
+  console.log('[controller: activateAccount]');
   const { token } = req.body;
   try {
     if (!token) {
@@ -83,8 +88,44 @@ exports.activateAccount = (req, res) => {
   }
 };
 
-exports.login = (req, res, next) => {
-  res.json({
-    data: "you hit the login api",
-  });
+exports.login = async (req, res, next) => {
+  console.log('[controller: login]');
+  const { email, password } = req.body;
+  try {
+    User.getAuthenticatedUser({ email, password })
+      .then((result) => {
+        const { _id } = result;
+        const jwt = new JWT(
+          { _id },
+          SECRET_KEY,
+          '7d'
+        );
+        const token = jwt.sign();
+
+        return res.status(200).json({
+          success: true,
+          message: SUCCESS_MESSAGE.SIGN_IN_SUCCESS,
+          data: {
+            user: result,
+            token
+          }
+        });
+      })
+      .catch(err => {
+        const { message, data } = err;
+        return res.status(400).json({
+          success: false,
+          message,
+          data
+        });
+      })
+
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      message: ERROR_MESSAGE.PROCESS_FAILED,
+      data: []
+    });
+  }
+
 };
