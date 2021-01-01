@@ -1,11 +1,12 @@
-import './App.css';
+import React from 'react';
+import Layout from './core/Layout';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-
-    </div>
-  );
+    <Layout>
+      <h1>Hello React</h1>
+    </Layout>
+  )
 }
 
 export default App;
