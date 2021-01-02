@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-
+import React, { useState } from 'react';
+import formData from './loginForm.data.json';
 import Layout from '../../../core/Layout.hoc';
 import ServiceAPI from '../../../utils/fetch.api';
 import { BACKEND_API } from '../../../app.constant';
-import formData from './loginForm.data.json';
+import Authentication from '../../../utils/Authentication.helper';
 
-const Login = () => {
+const Login = ({ history }) => {
   const [value, setValue] = useState({
     email: '',
     password: ''
   });
+
+  const user = Authentication.getUser();
 
   const onChangeHandler = (e) => {
     const stateKey = e.target.name;
@@ -26,8 +28,10 @@ const Login = () => {
         if (!result.success) {
           throw result;
         }
-
+        const { token, user } = result.data;
+        Authentication.set({ token, user });
         toast.success(result.message);
+        setValue({ email: '', password: '' });
       })
       .catch(err => {
         console.log(err);
@@ -59,7 +63,13 @@ const Login = () => {
         <button className='btn btn-primary' type='submit'>Sign up</button>
       </div>
     </form>
-  )
+  );
+
+  if (user && user.role === 'admin') {
+    history.push('/admin');
+  } else if (user) {
+    history.push('/profile');
+  }
 
   return (
     <Layout>

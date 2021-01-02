@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { Redirect } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { BACKEND_API } from '../../../app.constant';
 
 import Layout from '../../../core/Layout.hoc';
+import Authentication from '../../../utils/Authentication.helper';
 import ServiceAPI from '../../../utils/fetch.api';
 import formData from './signupForm.data.json';
 
@@ -27,7 +29,7 @@ const Signup = () => {
         if (!result.success) {
           throw result;
         }
-
+        setValue({ name: '', email: '', password: '' });
         toast.success(result.message);
       })
       .catch(err => {
@@ -61,6 +63,10 @@ const Signup = () => {
       </div>
     </form>
   );
+
+  if (Authentication.getUser()) {
+    return <Redirect to='/login' />
+  }
 
   return (
     <Layout>
