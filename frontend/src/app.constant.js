@@ -1,0 +1,2 @@
+export const BACKEND_API = process.env.REACT_APP_BACKEND_API;
+export const ACCOUNT_ACTIVATION_KEY = process.env.JWT_ACCOUNT_ACTIVATION_KEY;
