@@ -15,6 +15,7 @@ exports.EMAIL_VALIDATION_TIME = '24h'
 exports.ERROR_MESSAGE = {
   FORBIDDEN_ACCESS: 'Forbidden Access',
   NOT_REGISTERED_USER: 'User is not registered',
+  NO_USER_PRESENT: 'No such user present',
   REGISTER_TOKEN_EXPIRED: 'Token has already expired, please sign up again',
   PROCESS_FAILED: 'Failed to process the request, please try again',
   EMAIL_TAKEN: 'Email is already taken',
