@@ -1,9 +1,9 @@
-const { ERROR_MESSAGE } = require("../../app.constant");
+const { ERROR_MESSAGE, NO_USER_PRESENT } = require("../../app.constant");
 const UserModel = require("./user.model");
 
 class User {
-	static isUserPresent(email) {
-		console.log('[method: isUserPresent]');
+	static getUser(email) {
+		console.log('[method: getUser]');
 		return UserModel.findOne({ email })
 			.exec()
 			.then((result) => {
@@ -40,7 +40,7 @@ class User {
 	static getAuthenticatedUser({ email, password }) {
 		console.log('[method: getAuthenticatedUser]');
 		return new Promise((resolve, reject) => {
-			User.isUserPresent(email)
+			User.getUser(email)
 				.then((result) => {
 					if (!result) {
 						reject({
@@ -69,6 +69,28 @@ class User {
 				})
 		})
 	}
+
+	// static updateProfile({ _id, name, password, role, email }) {
+	// 	return UserModel.findById(_id)
+	// 	.then(user => {
+	// 		if(!user) {
+	// 			throw ('No user present');
+	// 		}
+
+	// 		if(user) {
+	// 			user.name = name;
+	// 		}
+
+	// 		if(password) {
+	// 			user.password = password;
+	// 		}
+
+	// 		user.updateOne()
+	// 	})
+	// 	.catch(err => {
+	// 		return(NO_USER_PRESENT)
+	// 	})
+	// }
 }
 
 module.exports = User;

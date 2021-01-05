@@ -12,7 +12,7 @@ exports.signup = async (req, res) => {
   console.log('[controller: signup]');
   const { name, email, password } = req.body;
   try {
-    const isNewUser = await User.isUserPresent(email);
+    const isNewUser = await User.getUser(email);
     if (isNewUser) {
       return res.status(400).json({
         success: false,
@@ -93,8 +93,8 @@ exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     User.getAuthenticatedUser({ email, password })
-      .then((result) => {
-        const { _id } = result;
+      .then((user) => {
+        const { _id } = user;
         const jwt = new JWT(
           { _id },
           SECRET_KEY,
@@ -102,11 +102,13 @@ exports.login = async (req, res, next) => {
         );
         const token = jwt.sign();
 
+        delete user['_id'];
+
         return res.status(200).json({
           success: true,
           message: SUCCESS_MESSAGE.SIGN_IN_SUCCESS,
           data: {
-            user: result,
+            user,
             token
           }
         });
