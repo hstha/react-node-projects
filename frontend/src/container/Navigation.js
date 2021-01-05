@@ -1,8 +1,11 @@
+import { connect } from "react-redux";
 import React, { Fragment } from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import Authentication from '../utils/Authentication.helper';
+import { RESET_USER_STORE } from "../store/actions/types";
+import { resetUserStore } from "../store/actions/userActions";
 
-const Navigation = ({ match, history }) => {
+const Navigation = ({ match, history, user, resetUserStore }) => {
   const isActive = path => {
     if (match.path === path) {
       return true;
@@ -11,10 +14,11 @@ const Navigation = ({ match, history }) => {
     return false;
   }
 
-  const user = Authentication.getUser();
+  const { isLoggedIn, role } = user;
 
   const logout = () => {
     Authentication.remove();
+    resetUserStore();
     history.push('/');
   }
 
@@ -25,7 +29,7 @@ const Navigation = ({ match, history }) => {
           <Link className={`nav-link ${isActive('/') ? 'active' : 'text-light'}`} to='/'>Home</Link>
         </li>
         {
-          !user
+          !isLoggedIn
             ?
             <Fragment>
               <li className='nav-item'>
@@ -41,7 +45,7 @@ const Navigation = ({ match, history }) => {
                 <Link className={`nav-link ${isActive('/profile') ? 'active' : 'text-light'}`} to='/profile'>Profile</Link>
               </li>
               {
-                user.role === 'admin' && (
+                role === 'admin' && (
                   <li className='nav-item'>
                     <Link className={`nav-link ${isActive('/admin') ? 'active' : 'text-light'}`} to='/admin'>Admin</Link>
                   </li>
@@ -57,4 +61,12 @@ const Navigation = ({ match, history }) => {
   )
 }
 
-export default withRouter(Navigation);
+const mapStateToProps = state => ({
+  user: state.user
+});
+
+const mapActionToProps = dispatch => ({
+  resetUserStore: () => dispatch(resetUserStore())
+})
+
+export default connect(mapStateToProps, mapActionToProps)(withRouter(Navigation));

@@ -1,3 +1,4 @@
+import { connect } from "react-redux";
 import { toast } from 'react-toastify';
 import React, { useState } from 'react';
 import formData from './loginForm.data.json';
@@ -5,14 +6,15 @@ import Layout from '../../../core/Layout.hoc';
 import ServiceAPI from '../../../utils/fetch.api';
 import { BACKEND_API } from '../../../app.constant';
 import Authentication from '../../../utils/Authentication.helper';
+import { setUser } from "../../../store/actions/userActions";
 
-const Login = ({ history }) => {
+const Login = ({ history, user, setUser }) => {
   const [value, setValue] = useState({
     email: '',
     password: ''
   });
 
-  const user = Authentication.getUser();
+  const { isLoggedIn, role } = user;
 
   const onChangeHandler = (e) => {
     const stateKey = e.target.name;
@@ -32,6 +34,7 @@ const Login = ({ history }) => {
         Authentication.set({ token, user });
         toast.success(result.message);
         setValue({ email: '', password: '' });
+        setUser({ name: user.name, email: user.email, role: user.role, isLoggedIn: true });
       })
       .catch(err => {
         console.log(err);
@@ -65,9 +68,9 @@ const Login = ({ history }) => {
     </form>
   );
 
-  if (user && user.role === 'admin') {
+  if (isLoggedIn && role === 'admin') {
     history.push('/admin');
-  } else if (user) {
+  } else if (isLoggedIn) {
     history.push('/profile');
   }
 
@@ -81,4 +84,16 @@ const Login = ({ history }) => {
   );
 }
 
-export default Login;
+const mapStateToProps = state => {
+  return ({
+    user: state.user
+  });
+}
+
+const mapActionToProps = dispatch => {
+  return {
+    setUser: (user) => dispatch(setUser(user))
+  };
+}
+
+export default connect(mapStateToProps, mapActionToProps)(Login);

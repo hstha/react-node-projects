@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -9,12 +10,14 @@ import Authentication from '../../../utils/Authentication.helper';
 import ServiceAPI from '../../../utils/fetch.api';
 import formData from './signupForm.data.json';
 
-const Signup = () => {
+const Signup = ({ user }) => {
   const [value, setValue] = useState({
     name: '',
     email: '',
     password: ''
   });
+
+  const { isLoggedIn } = user;
 
   const onChangeHandler = (e) => {
     const stateKey = e.target.name;
@@ -64,7 +67,7 @@ const Signup = () => {
     </form>
   );
 
-  if (Authentication.getUser()) {
+  if (isLoggedIn) {
     return <Redirect to='/login' />
   }
 
@@ -78,4 +81,8 @@ const Signup = () => {
   );
 }
 
-export default Signup;
+const mapStateToProps = state => ({
+  user: state.user
+});
+
+export default connect(mapStateToProps)(Signup);
