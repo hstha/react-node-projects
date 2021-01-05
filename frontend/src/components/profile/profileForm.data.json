@@ -1,0 +1,28 @@
+[
+  {
+    "label": "Role",
+    "name": "role",
+    "type": "text",
+    "id": "role",
+    "disabled": true
+  },
+  {
+    "label": "Name",
+    "name": "name",
+    "type": "text",
+    "id": "name"
+  },
+  {
+    "label": "Email",
+    "name": "email",
+    "type": "email",
+    "id": "email",
+    "disabled": true
+  },
+  {
+    "label": "Password",
+    "name": "Password",
+    "type": "password",
+    "id": "Password"
+  }
+]
