@@ -1,12 +1,17 @@
-const User = require("../models/User/User");
+const sgMail = require("@sendgrid/mail");
 const JWT = require("../utils/jwt.helper");
+const User = require("../models/User/User");
 const {
-  ACCOUNT_ACTIVATION_KEY,
-  EMAIL_VALIDATION_TIME,
-  ERROR_MESSAGE,
+  EMAIL_API,
   SECRET_KEY,
+  CLIENT_URL,
+  ERROR_MESSAGE,
   SUCCESS_MESSAGE,
+  EMAIL_VALIDATION_TIME,
+  ACCOUNT_ACTIVATION_KEY,
 } = require("../app.constant");
+
+sgMail.setApiKey(EMAIL_API);
 
 exports.signup = async (req, res) => {
   console.log('[controller: signup]');
@@ -27,15 +32,36 @@ exports.signup = async (req, res) => {
     );
     const token = jwt.sign();
 
-    return res.status(200).json({
-      success: true,
-      message: "Created",
-      data: [
-        {
-          token: token,
-        },
-      ],
-    });
+    const msg = {
+      to: email, // Change to your recipient
+      from: 'shresthaheriz14@gmail.com', // Change to your verified sender
+      subject: 'Sending with SendGrid is Fun',
+      text: 'and easy to do anywhere, even with Node.js',
+      html: `<a href="${CLIENT_URL}/auth/activate/${token}">${token}</a>`,
+    }
+
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log(`message sent`);
+        return res.status(200).json({
+          success: true,
+          message: "Please verify you email",
+          data: [
+            {
+              token: token,
+            },
+          ],
+        });
+      })
+      .catch((error) => {
+        return res.status(400).json({
+          success: true,
+          message: "Something went wrong",
+          data: [error],
+        });
+      });
+
   } catch (err) {
     res.status(404).json({
       success: false,
