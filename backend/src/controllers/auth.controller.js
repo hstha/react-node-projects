@@ -1,6 +1,6 @@
-const sgMail = require("@sendgrid/mail");
 const JWT = require("../utils/jwt.helper");
 const User = require("../models/User/User");
+const Email = require("../utils/email.helpers");
 const {
   EMAIL_API,
   SECRET_KEY,
@@ -10,8 +10,6 @@ const {
   EMAIL_VALIDATION_TIME,
   ACCOUNT_ACTIVATION_KEY,
 } = require("../app.constant");
-
-sgMail.setApiKey(EMAIL_API);
 
 exports.signup = async (req, res) => {
   console.log('[controller: signup]');
@@ -32,31 +30,21 @@ exports.signup = async (req, res) => {
     );
     const token = jwt.sign();
 
-    const msg = {
-      to: email, // Change to your recipient
-      from: 'shresthaheriz14@gmail.com', // Change to your verified sender
-      subject: 'Sending with SendGrid is Fun',
-      text: 'and easy to do anywhere, even with Node.js',
-      html: `<a href="${CLIENT_URL}/auth/activate/${token}">${token}</a>`,
-    }
+    const msg = Email.getAccountActivationMail({ to: email, token });
 
-    sgMail
+    Email
       .send(msg)
       .then(() => {
         console.log(`message sent`);
         return res.status(200).json({
           success: true,
           message: "Please verify you email",
-          data: [
-            {
-              token: token,
-            },
-          ],
+          data: [],
         });
       })
       .catch((error) => {
         return res.status(400).json({
-          success: true,
+          success: false,
           message: "Something went wrong",
           data: [error],
         });
