@@ -12,3 +12,11 @@ exports.userLoginValidator = [
   check('email').isEmail().withMessage('Email must be valid'),
   check('password').not().isEmpty().withMessage('Password is required')
 ]
+
+exports.userForgetPasswordValidator = [
+  check('email').isEmail().withMessage('Email must be valid')
+]
+
+exports.userResetPasswordValidator = [
+  check('password').not().isEmpty().withMessage('Password is required')
+]
