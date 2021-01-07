@@ -19,10 +19,17 @@ exports.ERROR_MESSAGE = {
   REGISTER_TOKEN_EXPIRED: 'Token has already expired, please sign up again',
   PROCESS_FAILED: 'Failed to process the request, please try again',
   EMAIL_TAKEN: 'Email is already taken',
-  AUTHENTICATION_ERROR: `Email and password doesn't match`
+  AUTHENTICATION_ERROR: `Email and password doesn't match`,
+  UNKNOWN_ERROR: 'Something went wrong',
+  EMAIL_ALREADY_TAKEN: 'Email is already taken',
 }
 
 exports.SUCCESS_MESSAGE = {
   ACCOUNT_CREATED: 'Account registered successfully',
-  SIGN_IN_SUCCESS: 'Logged in successfully'
+  SIGN_IN_SUCCESS: 'Logged in successfully',
+  USER_PRESENT: 'User present',
+  PASSWORD_CHANGED: 'Password Changed. Please login to continue',
+  UPDATED_SUCCESSFULLY: 'Updated successfully',
+  RESET_VERIFY_EMAIL: 'Reset link send in your mail',
+  ACCOUNT_ACTIVATION_VERIFY_EMAIL: 'Account activation link send in your mail',
 }
