@@ -1,12 +1,12 @@
 const JWT = require("../utils/jwt.helper");
 const User = require("../models/User/User");
 const Email = require("../utils/email.helpers");
+const Response = require("../utils/Response.helper");
 const {
-  EMAIL_API,
   SECRET_KEY,
-  CLIENT_URL,
   ERROR_MESSAGE,
   SUCCESS_MESSAGE,
+  RESET_PASSWORD_KEY,
   EMAIL_VALIDATION_TIME,
   ACCOUNT_ACTIVATION_KEY,
 } = require("../app.constant");
@@ -17,10 +17,9 @@ exports.signup = async (req, res) => {
   try {
     const isNewUser = await User.getUser(email);
     if (isNewUser) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is already taken",
-        data: null,
+      return Response.error(res, {
+        status: 200,
+        message: ERROR_MESSAGE.EMAIL_ALREADY_TAKEN
       });
     }
     const jwt = new JWT(
@@ -36,25 +35,22 @@ exports.signup = async (req, res) => {
       .send(msg)
       .then(() => {
         console.log(`message sent`);
-        return res.status(200).json({
-          success: true,
-          message: "Please verify you email",
-          data: [],
+        return Response.success(res, {
+          message: SUCCESS_MESSAGE.ACCOUNT_ACTIVATION_VERIFY_EMAIL
         });
       })
       .catch((error) => {
-        return res.status(400).json({
-          success: false,
-          message: "Something went wrong",
-          data: [error],
+        return Response.error(res, {
+          message: ERROR_MESSAGE.UNKNOWN_ERROR,
+          data: error
         });
       });
 
   } catch (err) {
-    res.status(404).json({
-      success: false,
-      message: "Failed to process the request",
-      data: err,
+    return Response.success(res, {
+      status: 404,
+      message: ERROR_MESSAGE.PROCESS_FAILED,
+      data: [err]
     });
   }
 };
@@ -145,3 +141,108 @@ exports.login = async (req, res, next) => {
   }
 
 };
+
+exports.forgotPassword = (req, res) => {
+  console.log(`[controller: forgotPassword ]`);
+  const { email } = req.body;
+  User.getUser(email)
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: ERROR_MESSAGE.NO_USER_PRESENT,
+          data: []
+        });
+      }
+
+      const token = new JWT({ _id: user._id }, RESET_PASSWORD_KEY, EMAIL_VALIDATION_TIME);
+
+      user.updateOne({ resetPasswordLink: token })
+        .then(user => {
+          const msg = Email.getForgetPasswordMail({ to: email, token });
+
+          Email
+            .send(msg)
+            .then(() => {
+              console.log(`message sent`);
+              return res.status(200).json({
+                success: true,
+                message: "Please verify you email",
+                data: [],
+              });
+            })
+            .catch((error) => {
+              throw error;
+            });
+        })
+        .catch(error => {
+          throw error;
+        })
+
+    })
+    .catch(err => {
+      return res.status(404).json({
+        success: false,
+        message: ERROR_MESSAGE.UNKNOWN_ERROR,
+        data: err
+      });
+    })
+}
+
+exports.resetPassword = (req, res) => {
+  console.log(`[controller: resetPassword ]`);
+  const { resetPasswordLink, newPassword, email } = req.body;
+  if (!resetPasswordLink) {
+    return res.status(400).json({
+      success: false,
+      message: '',
+      data: []
+    });
+  }
+
+  JWT.verifyToken(resetPasswordLink, RESET_PASSWORD_KEY)
+    .then(dcodedData => {
+      User.getUser(email)
+        .then(user => {
+          if (!user) {
+            return res.status(400).json({
+              success: false,
+              message: ERROR_MESSAGE.NO_USER_PRESENT,
+              data: []
+            });
+          }
+
+          user.updateOne({ password: newPassword, resetPasswordLink: '' })
+            .then(user => {
+              return res.status(200).json({
+                success: true,
+                message: SUCCESS_MESSAGE.PASSWORD_CHANGED,
+                data: []
+              });
+            })
+            .catch(error => {
+              return res.status(400).json({
+                success: false,
+                message: ERROR_MESSAGE.UNKNOWN_ERROR,
+                data: []
+              });
+            })
+        })
+        .catch(error => {
+          return res.status(400).json({
+            success: false,
+            message: ERROR_MESSAGE.UNKNOWN_ERROR,
+            data: []
+          });
+        });
+    })
+    .catch(error => {
+      return res.status(400).json({
+        success: false,
+        message: 'Expired link. Try again',
+        data: []
+      })
+    })
+
+  User.updateUser({ email, password });
+}
