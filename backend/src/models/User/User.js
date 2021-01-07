@@ -1,10 +1,16 @@
-const { ERROR_MESSAGE, NO_USER_PRESENT } = require("../../app.constant");
+const { ERROR_MESSAGE, NO_USER_PRESENT, SUCCESS_MESSAGE } = require("../../app.constant");
 const UserModel = require("./user.model");
 
 class User {
 	static getUser(email) {
 		console.log('[method: getUser]');
-		return UserModel.findOne({ email })
+		let query = { email };
+
+		if (typeof email === 'object') {
+			query = email
+		}
+
+		return UserModel.findOne(query)
 			.exec()
 			.then((result) => {
 				if (result) {
@@ -91,6 +97,20 @@ class User {
 	// 		return(NO_USER_PRESENT)
 	// 	})
 	// }
+
+	static updateUser(user) {
+		return (
+			user
+				.save()
+				.then(result => {
+					console.log('result ', result);
+					return result;
+				})
+				.catch(error => {
+					return error
+				})
+		);
+	}
 }
 
 module.exports = User;
