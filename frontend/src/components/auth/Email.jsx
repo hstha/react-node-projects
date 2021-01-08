@@ -4,12 +4,11 @@ import ServiceAPI from '../../utils/fetch.api';
 import { BACKEND_API } from '../../app.constant';
 import { toast } from 'react-toastify';
 
-const ForgetPassword = ({ match }) => {
+const Email = () => {
   function submitHandler(e) {
     e.preventDefault();
-    const token = match.params['token'];
-    const password = e.target.password.value;
-    ServiceAPI.put(`${BACKEND_API}/reset-password`, { resetPasswordLink: token, newPassword: password })
+    const email = e.target.email.value;
+    ServiceAPI.post(`${BACKEND_API}/forget-password`, { email })
       .then(result => {
         if (!result.success) {
           throw result;
@@ -25,19 +24,19 @@ const ForgetPassword = ({ match }) => {
   const formData = (
     <form onSubmit={submitHandler}>
       <div className="form-group">
-        <label htmlFor="password" className="text-muted">
-          Password
+        <label htmlFor="email" className="text-muted">
+          Email
         </label>
         <input
-          type="password"
-          name='password'
+          type="email"
+          name='email'
           className="form-control"
           required={true}
         />
       </div>
       <div>
         <button className="btn btn-primary" type="submit">
-          Reset Password
+          Send Reset Link
 				</button>
       </div>
     </form>
@@ -48,11 +47,11 @@ const ForgetPassword = ({ match }) => {
   return (
     <Layout>
       <div className="col-md-6 offset-md-3">
-        <h1 className="p-5 text-center">Reset Password</h1>
+        <h1 className="p-5 text-center">Reset Email</h1>
         {formData}
       </div>
     </Layout>
   );
 }
 
-export default ForgetPassword;
+export default Email;
