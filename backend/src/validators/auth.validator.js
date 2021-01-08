@@ -18,5 +18,5 @@ exports.userForgetPasswordValidator = [
 ]
 
 exports.userResetPasswordValidator = [
-  check('password').not().isEmpty().withMessage('Password is required')
+  check('newPassword').not().isEmpty().withMessage('Password is required')
 ]
