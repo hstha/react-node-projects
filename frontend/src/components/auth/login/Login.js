@@ -7,6 +7,7 @@ import ServiceAPI from '../../../utils/fetch.api';
 import { BACKEND_API } from '../../../app.constant';
 import Authentication from '../../../utils/Authentication.helper';
 import { setUser } from '../../../store/actions/userActions';
+import { Link } from 'react-router-dom';
 
 const Login = ({ history, user, setUser }) => {
 	const [value, setValue] = useState({
@@ -67,12 +68,13 @@ const Login = ({ history, user, setUser }) => {
 					</div>
 				);
 			})}
+			<Link to='/auth/password/reset'>Forget Password</Link>
 			<div>
 				<button className="btn btn-primary" type="submit">
 					Sign up
 				</button>
 			</div>
-		</form>
+		</form >
 	);
 
 	if (isLoggedIn && role === 'admin') {
