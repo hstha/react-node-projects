@@ -2,15 +2,10 @@ const { ERROR_MESSAGE, NO_USER_PRESENT, SUCCESS_MESSAGE } = require("../../app.c
 const UserModel = require("./user.model");
 
 class User {
-	static getUser(email) {
+	static getUser(queryObject) {
 		console.log('[method: getUser]');
-		let query = { email };
 
-		if (typeof email === 'object') {
-			query = email
-		}
-
-		return UserModel.findOne(query)
+		return UserModel.findOne(queryObject)
 			.exec()
 			.then((result) => {
 				if (result) {
@@ -24,19 +19,18 @@ class User {
 			});
 	}
 
-	static saveUser({ name, email, password }) {
+	static saveUser(user, createmodel = true) {
 		console.log('[method: saveUser]');
-		const newUser = new UserModel({ name, email, password });
+		let newUser = user;
+		if (createmodel) {
+			const { name, email, password } = user;
+			newUser = new UserModel({ name, email, password });
+		}
 		return newUser.save()
 			.then((result) => {
 				return {
 					message: "Your account is registered",
-					data: [
-						{
-							name,
-							email,
-						},
-					],
+					data: [],
 				};
 			}).catch((err) => {
 				return err;
@@ -46,7 +40,7 @@ class User {
 	static getAuthenticatedUser({ email, password }) {
 		console.log('[method: getAuthenticatedUser]');
 		return new Promise((resolve, reject) => {
-			User.getUser(email)
+			User.getUser({ email })
 				.then((result) => {
 					if (!result) {
 						reject({
@@ -76,40 +70,22 @@ class User {
 		})
 	}
 
-	// static updateProfile({ _id, name, password, role, email }) {
-	// 	return UserModel.findById(_id)
-	// 	.then(user => {
-	// 		if(!user) {
-	// 			throw ('No user present');
-	// 		}
+	static updateUser(queryObject, updateObject) {
+		return User.getUser(queryObject)
+			.then(user => {
+				if (!user) {
+					return;
+				}
 
-	// 		if(user) {
-	// 			user.name = name;
-	// 		}
+				for (const key in updateObject) {
+					user[key] = updateObject[key];
+				}
 
-	// 		if(password) {
-	// 			user.password = password;
-	// 		}
-
-	// 		user.updateOne()
-	// 	})
-	// 	.catch(err => {
-	// 		return(NO_USER_PRESENT)
-	// 	})
-	// }
-
-	static updateUser(user) {
-		return (
-			user
-				.save()
-				.then(result => {
-					console.log('result ', result);
-					return result;
-				})
-				.catch(error => {
-					return error
-				})
-		);
+				return User.saveUser(user, false);
+			})
+			.catch(error => {
+				return error;
+			})
 	}
 }
 
