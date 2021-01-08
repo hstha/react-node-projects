@@ -15,10 +15,9 @@ exports.signup = async (req, res) => {
   console.log('[controller: signup]');
   const { name, email, password } = req.body;
   try {
-    const isNewUser = await User.getUser(email);
+    const isNewUser = await User.getUser({ email });
     if (isNewUser) {
       return Response.error(res, {
-        status: 200,
         message: ERROR_MESSAGE.EMAIL_ALREADY_TAKEN
       });
     }
@@ -47,7 +46,7 @@ exports.signup = async (req, res) => {
       });
 
   } catch (err) {
-    return Response.success(res, {
+    return Response.error(res, {
       status: 404,
       message: ERROR_MESSAGE.PROCESS_FAILED,
       data: [err]
@@ -73,27 +72,24 @@ exports.activateAccount = (req, res) => {
     User.saveUser({ name, email, password })
       .then((result) => {
         const { message, data } = result;
-        return res.status(200).json({
-          success: true,
+        return Response.success(res, {
           message: message,
-          data: data,
+          data: data
         });
       })
       .catch((err) => {
         const { message, data } = err;
-        return res.status(401).json({
-          success: false,
-          message: message,
-          data: data,
+        return Response.error(res, {
+          status: 401,
+          message,
+          data
         });
       });
-
   } catch (err) {
     console.log(err);
-    return res.status(403).json({
-      success: false,
-      message: "Forbidden Access or token is exired",
-      data: [],
+    return Response.error(res, {
+      status: 403,
+      message: ERROR_MESSAGE.FORBIDDEN_ACCESS
     });
   }
 };
@@ -114,29 +110,21 @@ exports.login = async (req, res, next) => {
 
         delete user['_id'];
 
-        return res.status(200).json({
-          success: true,
+        return Response.success(res, {
           message: SUCCESS_MESSAGE.SIGN_IN_SUCCESS,
-          data: {
-            user,
-            token
-          }
+          data: { user, token }
         });
       })
       .catch(err => {
         const { message, data } = err;
-        return res.status(400).json({
-          success: false,
+        return Response.error(res, {
           message,
           data
         });
-      })
-
+      });
   } catch (err) {
-    return res.status(400).json({
-      success: false,
-      message: ERROR_MESSAGE.PROCESS_FAILED,
-      data: []
+    return Response.error(res, {
+      message: ERROR_MESSAGE.PROCESS_FAILED
     });
   }
 
@@ -145,18 +133,17 @@ exports.login = async (req, res, next) => {
 exports.forgotPassword = (req, res) => {
   console.log(`[controller: forgotPassword ]`);
   const { email } = req.body;
-  User.getUser(email)
+  User.getUser({ email })
     .then((user) => {
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: ERROR_MESSAGE.NO_USER_PRESENT,
-          data: []
+        return Response.error(res, {
+          status: 404,
+          message: ERROR_MESSAGE.NO_USER_PRESENT
         });
       }
 
-      const token = new JWT({ _id: user._id }, RESET_PASSWORD_KEY, EMAIL_VALIDATION_TIME);
-
+      const jwt = new JWT({ _id: user._id }, RESET_PASSWORD_KEY, EMAIL_VALIDATION_TIME);
+      const token = jwt.sign();
       user.updateOne({ resetPasswordLink: token })
         .then(user => {
           const msg = Email.getForgetPasswordMail({ to: email, token });
@@ -165,10 +152,8 @@ exports.forgotPassword = (req, res) => {
             .send(msg)
             .then(() => {
               console.log(`message sent`);
-              return res.status(200).json({
-                success: true,
-                message: "Please verify you email",
-                data: [],
+              return Response.success(res, {
+                message: SUCCESS_MESSAGE.RESET_VERIFY_EMAIL
               });
             })
             .catch((error) => {
@@ -181,8 +166,8 @@ exports.forgotPassword = (req, res) => {
 
     })
     .catch(err => {
-      return res.status(404).json({
-        success: false,
+      return Response.error(res, {
+        status: 404,
         message: ERROR_MESSAGE.UNKNOWN_ERROR,
         data: err
       });
@@ -191,58 +176,24 @@ exports.forgotPassword = (req, res) => {
 
 exports.resetPassword = (req, res) => {
   console.log(`[controller: resetPassword ]`);
-  const { resetPasswordLink, newPassword, email } = req.body;
+  const { resetPasswordLink, newPassword } = req.body;
   if (!resetPasswordLink) {
-    return res.status(400).json({
-      success: false,
-      message: '',
-      data: []
+    return Response.error(res, {
+      message: ERROR_MESSAGE.UNKNOWN_ERROR
     });
   }
 
-  JWT.verifyToken(resetPasswordLink, RESET_PASSWORD_KEY)
-    .then(dcodedData => {
-      User.getUser(email)
-        .then(user => {
-          if (!user) {
-            return res.status(400).json({
-              success: false,
-              message: ERROR_MESSAGE.NO_USER_PRESENT,
-              data: []
-            });
-          }
-
-          user.updateOne({ password: newPassword, resetPasswordLink: '' })
-            .then(user => {
-              return res.status(200).json({
-                success: true,
-                message: SUCCESS_MESSAGE.PASSWORD_CHANGED,
-                data: []
-              });
-            })
-            .catch(error => {
-              return res.status(400).json({
-                success: false,
-                message: ERROR_MESSAGE.UNKNOWN_ERROR,
-                data: []
-              });
-            })
-        })
-        .catch(error => {
-          return res.status(400).json({
-            success: false,
-            message: ERROR_MESSAGE.UNKNOWN_ERROR,
-            data: []
-          });
-        });
+  const { _id } = JWT.verifyToken(resetPasswordLink, RESET_PASSWORD_KEY);
+  User.updateUser({ _id }, { password: newPassword, resetPasswordLink: '' })
+    .then(() => {
+      return Response.success(res, {
+        message: SUCCESS_MESSAGE.UPDATED_SUCCESSFULLY,
+      });
     })
     .catch(error => {
-      return res.status(400).json({
-        success: false,
-        message: 'Expired link. Try again',
-        data: []
-      })
+      return Response.error(req, {
+        message: ERROR_MESSAGE.PROCESS_FAILED,
+        data: [error]
+      });
     })
-
-  User.updateUser({ email, password });
 }
