@@ -10,7 +10,7 @@ import Signup from '../../components/auth/signup/Signup';
 import ActivateAccount from '../../components/auth/Activate';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import ForgetPassword from '../../components/auth/ForgetPassword';
-
+import Email from '../../components/auth/Email';
 const Routes = () => {
   return (
     <BrowserRouter>
@@ -20,6 +20,7 @@ const Routes = () => {
         <Route path='/login' component={Login} />
         <Route path='/auth/activate/:token' component={ActivateAccount} />
         <Route path='/auth/password/reset/:token' component={ForgetPassword} />
+        <Route path='/auth/password/reset' component={Email} />
         <PrivateRoute path='/profile'>
           <Profile />
         </PrivateRoute>
